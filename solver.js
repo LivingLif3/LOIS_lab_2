@@ -1,6 +1,6 @@
 import {CompositionEquation, Interval} from "./Interval.js";
 
-class Solver {
+export class Solver {
     constructor(
         logicalConclusion,
         rules
@@ -39,7 +39,7 @@ class Solver {
         }
     }
 
-    formAnswers() {
+    formAnswers() { // [['y2', 0.7], ['y1', 0.7]]
         for(let row of this.matrix) {
             for(let el of row[0]) {
                 if(typeof el === "number") continue
@@ -59,14 +59,6 @@ class Solver {
                 }
             }
         }
-        // for(let row of this.matrix) {
-        //     if(row[0][1] > firstMax) {
-        //         firstMax = row[0][1]
-        //     }
-        //     if(row[1][1] > secondMax) {
-        //         secondMax = row[1][1]
-        //     }
-        // }
     }
 
     printAnswer(maxes) {
@@ -112,9 +104,17 @@ class Solver {
             let counter = 0
             for(let key in intersection) {
                 if(counter !== Object.keys(intersection).length - 1) {
-                    string += `[${intersection[key].left},${intersection[key].right}]x`
+                    if(intersection[key].left === intersection[key].right) {
+                        string += `${intersection[key].left}x`
+                    } else {
+                        string += `[${intersection[key].left},${intersection[key].right}]x`
+                    }
                 } else {
-                    string += `[${intersection[key].left},${intersection[key].right}]`
+                    if(intersection[key].left === intersection[key].right) {
+                        string += `${intersection[key].left}`
+                    } else {
+                        string += `[${intersection[key].left},${intersection[key].right}]`
+                    }
                 }
                 counter++
             }
@@ -127,8 +127,28 @@ class Solver {
         console.log(string)
     }
 
+    logSystem() {
+        let string = ""
+        for(let i = 0; i < this.matrix.length; i++) {
+            let counter = 0
+            for(let el of this.matrix[i]) {
+                if(counter !== this.matrix[i].length - 1) {
+                    string += `(${el[1]}/~\\C(${el[0][0]}))\\~/`
+                } else {
+                    string += `(${el[1]}/~\\C(${el[0][0]}))=`
+                }
+                counter++
+            }
+            string += `${this.answers[i][1]}\n`
+        }
+        return string
+    }
+
     findIntersectionOfIntervals(intervals) {
-        let keys = intervals[0][0].keys
+        // console.log(intervals, "INTERVALS")
+        // for(let interval of intervals) {
+        //     console.log(interval)
+        // }
         let countOfIntersections = 0, index = 0
         let intersections = []
         for(let i = 0; i < intervals.length; i++) {
@@ -143,7 +163,7 @@ class Solver {
             for(let j = 0; j < intervals.length; j++) {
                 if(index !== j) {
                     for(let interval of intervals[j]) {
-                        for(let key in interval.keys) {
+                        for(let key in interval) {
                             if(interval[key].left > intervals[index][i][key].left) {
                                 maxInterval[key].left = interval[key].left
                             }
@@ -162,9 +182,12 @@ class Solver {
     main() {
         this.formMatrix()
         this.formAnswers()
-        this.solve()
+
 
         let suitableData = this.transformDataToObj()
+
+        console.log('Система:')
+        console.log(this.logSystem())
 
         let intervals = []
         for(let i = 0; i < suitableData.expressions.length; i++) {
@@ -173,19 +196,31 @@ class Solver {
                 suitableData.answers[i]
             )
             intervals.push(
-                interval.get_solutions_list()
+                interval.getSolutionsList()
             )
         }
         for(let interval of intervals) {
+            if(!interval.length) {
+                console.log("∅")
+                return
+            }
         }
+        console.log('Результат обратного вывода:')
         const intersections = this.findIntersectionOfIntervals(intervals)
         this.log(intersections)
     }
 }
 
-let test = new Solver([['y1', 0.7], ['y2', 0.3], ['y3', 0.2]], [
-    [[['x1', 'y1'], 0.7], [['x1', 'y2'], 0.1], [['x1', 'y3'], 0.2]],
-    [[['x2', 'y1'], 0.7], [['x2', 'y2'], 0.3], [['x2', 'y3'], 0.1]]
-])
+// let test = new Solver([['y1', 0.6], ['y2', 0.2], ['y3', 0.2]], [
+//     [[['x1', 'y1'], 0.7], [['x1', 'y2'], 0.2], [['x1', 'y3'], 0.2]],
+//     [[['x2', 'y1'], 0.5], [['x2', 'y2'], 0.1], [['x2', 'y3'], 0.1]]
+// ])
 
-test.main()
+/*
+[['y1', 0.6], ['y2', 0.2], ['y3', 0.2]], [
+    [[['x1', 'y1'], 0.7], [['x1', 'y2'], 0.1], [['x1', 'y3'], 0.1]],
+    [[['x2', 'y1'], 0.5], [['x2', 'y2'], 0.1], [['x2', 'y3'], 0.1]]
+]
+*/
+
+// test.main()
